@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">CraveQuest</string>
+    <string-array name="roles_array">
+        <item>Admin</item>
+        <item>Customer</item>
+    </string-array>
+</resources>
