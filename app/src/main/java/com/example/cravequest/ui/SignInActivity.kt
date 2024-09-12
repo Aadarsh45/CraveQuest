@@ -19,7 +19,7 @@ class SignInActivity : AppCompatActivity() {
 
     private lateinit var emailEditText: EditText
     private lateinit var passwordEditText: EditText
-    private lateinit var roleSpinner: Spinner
+
     private lateinit var signInButton: Button
     private lateinit var signUpLink: TextView
 
@@ -30,26 +30,21 @@ class SignInActivity : AppCompatActivity() {
         // Initialize views
         emailEditText = findViewById(R.id.email)
         passwordEditText = findViewById(R.id.password)
-        roleSpinner = findViewById(R.id.role_spinner)
+
         signInButton = findViewById(R.id.btnSignIn)
         signUpLink = findViewById(R.id.register_now)
 
 
 
-        // Populate the role spinner with Admin and Customer options
-        val roles = arrayOf("Admin", "Customer")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, roles)
-        roleSpinner.adapter = adapter
-
         signInButton.setOnClickListener {
             val email = emailEditText.text.toString()
             val password = passwordEditText.text.toString()
-            val selectedRole = roleSpinner.selectedItem.toString()
+
 
             if (validateInput(email, password)) {
                 val loginRequest = LoginRequest(
                     email = email,
-                    role = selectedRole,
+
                     password = password
                 )
 
