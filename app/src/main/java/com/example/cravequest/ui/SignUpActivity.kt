@@ -29,12 +29,6 @@ class SignUpActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sign_up)
 
-        loginButton = findViewById(R.id.login_now)
-        loginButton.setOnClickListener {
-            startActivity(Intent(this, SignInActivity::class.java))
-            finish()
-        }
-
         // Initialize views
         usernameEditText = findViewById(R.id.username)
         emailEditText = findViewById(R.id.email)
@@ -42,12 +36,21 @@ class SignUpActivity : AppCompatActivity() {
         roleSpinner = findViewById(R.id.role_spinner)
         signUpButton = findViewById(R.id.btnSignUp)
         profileImageView = findViewById(R.id.profile_image)
+        loginButton = findViewById(R.id.login_now)
 
         // Populate the role spinner with Admin and Customer
         val roles = arrayOf("Admin", "Customer")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, roles)
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, roles)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         roleSpinner.adapter = adapter
 
+        // Set onClick listener for login button
+        loginButton.setOnClickListener {
+            startActivity(Intent(this, SignInActivity::class.java))
+            finish()
+        }
+
+        // Set onClick listener for sign-up button
         signUpButton.setOnClickListener {
             val username = usernameEditText.text.toString()
             val email = emailEditText.text.toString()
@@ -72,22 +75,21 @@ class SignUpActivity : AppCompatActivity() {
     }
 
     private fun validateInput(username: String, email: String, password: String): Boolean {
-        if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show()
-            return false
+        return when {
+            username.isEmpty() || email.isEmpty() || password.isEmpty() -> {
+                Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show()
+                false
+            }
+            !isValidEmail(email) -> {
+                Toast.makeText(this, "Invalid email format", Toast.LENGTH_SHORT).show()
+                false
+            }
+            password.length < 6 -> {
+                Toast.makeText(this, "Password must be at least 6 characters long", Toast.LENGTH_SHORT).show()
+                false
+            }
+            else -> true
         }
-
-        if (!isValidEmail(email)) {
-            Toast.makeText(this, "Invalid email format", Toast.LENGTH_SHORT).show()
-            return false
-        }
-
-        if (password.length < 6) {
-            Toast.makeText(this, "Password must be at least 6 characters long", Toast.LENGTH_SHORT).show()
-            return false
-        }
-
-        return true
     }
 
     private fun isValidEmail(email: String): Boolean {
@@ -105,15 +107,25 @@ class SignUpActivity : AppCompatActivity() {
             override fun onResponse(call: Call<AuthResponse>, response: Response<AuthResponse>) {
                 if (response.isSuccessful) {
                     val authResponse = response.body()
-                    Log.i("SignUp", "Sign up successful, JWT: ${authResponse?.jwt}")
-                    // Handle successful sign-up (e.g., navigate to login or home screen)
+                    if (authResponse != null) {
+                        Log.i("SignUp", "Sign up successful, JWT: ${authResponse.jwt}")
+                        Toast.makeText(this@SignUpActivity, "Sign up successful", Toast.LENGTH_SHORT).show()
+                        // Handle successful sign-up (e.g., navigate to login or home screen)
+                        startActivity(Intent(this@SignUpActivity, SignInActivity::class.java))
+                        finish()
+                    } else {
+                        Log.e("SignUp", "Response body is null")
+                        Toast.makeText(this@SignUpActivity, "Sign up failed: Response body is null", Toast.LENGTH_SHORT).show()
+                    }
                 } else {
                     Log.e("SignUp", "Sign up failed: ${response.errorBody()?.string()}")
+                    Toast.makeText(this@SignUpActivity, "Sign up failed: ${response.errorBody()?.string()}", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<AuthResponse>, t: Throwable) {
                 Log.e("SignUp", "Sign up request failed", t)
+                Toast.makeText(this@SignUpActivity, "Sign up request failed: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }

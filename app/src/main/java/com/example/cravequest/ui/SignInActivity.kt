@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import com.example.cravequest.MainActivity
 import com.example.cravequest.R
 import com.example.cravequest.models.AuthResponse
 import com.example.cravequest.models.LoginRequest
@@ -91,19 +92,23 @@ class SignInActivity : AppCompatActivity() {
 
         call.enqueue(object : Callback<AuthResponse> {
             override fun onResponse(call: Call<AuthResponse>, response: Response<AuthResponse>) {
-                if (response.isSuccessful) {
-                    val authResponse = response.body()
-                    Log.i("SignIn", "Sign in successful, JWT: ${authResponse?.jwt}")
-                    // Navigate to home screen based on the role
-                    if (authResponse?.role == "Admin") {
-                        Log.i("SignIn", "Admin , JWT: ${authResponse?.jwt}")
-                    } else if (authResponse?.role == "Customer") {
-                        Log.i("SignIn", "Customer , JWT: ${authResponse?.jwt}")
-                    }
-                } else {
-                    Log.e("SignIn", "Sign in failed: ${response.errorBody()?.string()}")
-                    Toast.makeText(this@SignInActivity, "Sign in failed", Toast.LENGTH_SHORT).show()
+
+            if (response.isSuccessful) {
+                val authResponse = response.body()
+                if (authResponse != null) {
+                    // Save JWT Token to SharedPreferences
+                    val sharedPreferences = getSharedPreferences("CraveQuest", MODE_PRIVATE)
+                    sharedPreferences.edit().putString("JWT_TOKEN", authResponse.jwt).apply()
+
+                    Toast.makeText(this@SignInActivity, "Login Successful", Toast.LENGTH_SHORT).show()
+
+                    // Move to the next activity after successful login
+                    startActivity(Intent(this@SignInActivity, MainActivity::class.java))
                 }
+            } else {
+                Toast.makeText(this@SignInActivity, "Error: ${response.errorBody()?.string()}", Toast.LENGTH_SHORT).show()
+            }
+
             }
 
             override fun onFailure(call: Call<AuthResponse>, t: Throwable) {
